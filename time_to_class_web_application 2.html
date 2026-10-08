@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="th" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time to Class | นอนตรงเวลา ตื่นทันเรียน ไม่เบลอในห้อง</title>
+    
+    <!-- Google Fonts: Prompt & Kanit & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        night: {
+                            950: '#030712',
+                            900: '#0f172a',
+                            800: '#1e1b4b',
+                            700: '#2e1065',
+                        },
+                        class: {
+                            blue: '#38bdf8',
+                            indigo: '#818cf8',
+                            purple: '#c084fc',
+                            emerald: '#10b981',
+                            amber: '#f59e0b',
+                            rose: '#f43f5e'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Prompt', 'Kanit', 'Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 5s ease-in-out infinite',
+                        'glow': 'glow 3s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        },
+                        glow: {
+                            '0%': { filter: 'drop-shadow(0 0 15px rgba(56, 189, 248, 0.4))' },
+                            '100%': { filter: 'drop-shadow(0 0 25px rgba(129, 140, 248, 0.7))' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Prompt', 'Kanit', sans-serif;
+            background-color: #080d1a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphic Cards */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card-hover:hover {
+            transform: translateY(-4px);
+            background: rgba(30, 27, 75, 0.85);
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 12px 40px 0 rgba(56, 189, 248, 0.2);
+        }
+
+        /* Interactive Canvas Background */
+        #starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #080d1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e1b4b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Breathing Circle Pulse */
+        .breath-circle {
+            transition: transform 0.1s linear, background-color 0.5s ease;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen text-slate-100 antialiased selection:bg-class-indigo selection:text-white">
+
+    <!-- Dynamic Starfield Canvas Effect -->
+    <canvas id="starfield"></canvas>
+
+    <!-- Main Container Layout -->
+    <div class="relative z-10 flex flex-col min-h-screen">
+
+        <!-- Header / Navbar -->
+        <header class="sticky top-0 z-50 glass-card border-b border-slate-800/80 px-4 lg:px-8 py-3.5 transition-all">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <!-- Branding Logo -->
+                <a href="#" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-class-blue via-class-indigo to-class-purple flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-sky-500/30 group-hover:scale-105 transition-transform">
+                        ⏰
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-xl tracking-tight text-white flex items-center gap-2">
+                            Time to Class
+                            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-class-blue border border-sky-500/30">STUDENT EDITION</span>
+                        </span>
+                        <span class="text-xs text-slate-400 font-light block -mt-0.5">นอนตรงเวลา ตื่นทันเรียน ไม่เบลอในห้อง</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation Links -->
+                <nav class="hidden xl:flex items-center gap-6 text-sm font-medium text-slate-300">
+                    <a href="#calculator" class="hover:text-class-blue transition-colors">คำนวณเวลานอนวิชาเช้า</a>
+                    <a href="#comparison" class="hover:text-class-blue transition-colors">เปรียบเทียบผลกระทบ</a>
+                    <a href="#habits" class="hover:text-class-blue transition-colors">6 เทคนิคตื่นทันเรียน</a>
+                    <a href="#quiz" class="hover:text-class-blue transition-colors">เช็กความเสี่ยงตื่นสาย</a>
+                    <a href="#challenge" class="hover:text-class-blue transition-colors">7-Day Challenge</a>
+                    <a href="#relaxation" class="hover:text-class-blue transition-colors">มุมผ่อนคลาย</a>
+                </nav>
+
+                <!-- Quick Action Button -->
+                <div class="flex items-center gap-3">
+                    <a href="#calculator" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-class-blue to-class-indigo text-slate-950 font-bold text-sm hover:opacity-90 transition-all shadow-md shadow-sky-500/20 active:scale-95">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>คำนวณเวลาตื่นวิชาเช้า</span>
+                    </a>
+                    <button id="mobileMenuBtn" class="xl:hidden p-2 text-slate-300 hover:text-white focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Dropdown -->
+            <div id="mobileMenu" class="hidden xl:hidden mt-3 pt-3 border-t border-slate-800 flex flex-col gap-2 pb-2 px-2 text-sm">
+                <a href="#calculator" class="py-2 text-slate-300 hover:text-class-blue">คำนวณเวลานอนวิชาเช้า</a>
+                <a href="#comparison" class="py-2 text-slate-300 hover:text-class-blue">เปรียบเทียบผลกระทบ</a>
+                <a href="#habits" class="py-2 text-slate-300 hover:text-class-blue">6 เทคนิคตื่นทันเรียน</a>
+                <a href="#quiz" class="py-2 text-slate-300 hover:text-class-blue">เช็กความเสี่ยงตื่นสาย</a>
+                <a href="#challenge" class="py-2 text-slate-300 hover:text-class-blue">7-Day Challenge</a>
+                <a href="#relaxation" class="py-2 text-slate-300 hover:text-class-blue">มุมผ่อนคลายก่อนนอน</a>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="relative pt-12 pb-16 md:pt-20 md:pb-28 overflow-hidden px-4">
+            <div class="max-w-5xl mx-auto text-center relative z-10">
+                <!-- Campaign Badge -->
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-sky-500/30 text-sky-300 text-xs md:text-sm font-medium mb-8 animate-float">
+                    <span class="flex h-2 w-2 rounded-full bg-class-blue animate-ping"></span>
+                    <i class="fa-solid fa-graduation-cap text-class-blue"></i>
+                    <span>แคมเปญรณรงค์จัดเวลานอนเพื่อประสิทธิภาพการเรียนสูงสุด</span>
+                </div>
+
+                <!-- Main Slogan -->
+                <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+                    Time to Class <br class="hidden sm:inline" />
+                    <span class="gradient-text">นอนตรงเวลา ตื่นทันเรียน</span>
+                    <span class="block text-xl sm:text-3xl font-semibold text-slate-300 mt-3 font-sans">
+                        "หยุดวงจรอดนอน ตื่นสาย สมองเบลอในห้องเรียน"
+                    </span>
+                </h1>
+
+                <p class="max-w-2xl mx-auto text-slate-300 text-base md:text-lg mb-10 leading-relaxed font-light">
+                    หมดปัญหาไปเรียนสาย หลับในคลาส หรือจดจำบทเรียนไม่ได้ วางแผนเวลานอนตามรอบการนอนหลับ 90 นาที เพื่อให้ตื่นมาสดชื่น สมองพร้อมลุยวิชาเช้าได้อย่างเต็ม 100%!
+                </p>
+
+                <!-- Hero CTA Buttons -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+                    <a href="#calculator" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-class-blue via-sky-500 to-class-indigo text-slate-950 font-bold text-base shadow-xl shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>คำนวณเวลานอนวิชาเช้า</span>
+                    </a>
+                    <a href="#challenge" class="w-full sm:w-auto px-8 py-4 rounded-2xl glass-card border border-slate-700 hover:border-slate-500 text-slate-200 font-semibold text-base hover:bg-slate-800/50 transition-all flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-fire text-class-amber"></i>
+                        <span>เริ่มภารกิจ 7 วัน</span>
+                    </a>
+                </div>
+
+                <!-- Quick Impact Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 max-w-4xl mx-auto text-left">
+                    <div class="glass-card p-4 rounded-2xl border-slate-800">
+                        <div class="text-class-rose text-2xl font-bold mb-1">-40%</div>
+                        <div class="text-xs text-slate-400">ประสิทธิภาพความจำลดลงเมื่ออดนอนสะสม</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border-slate-800">
+                        <div class="text-class-amber text-2xl font-bold mb-1">65%</div>
+                        <div class="text-xs text-slate-400">นักเรียนเข้าเรียนสายเพราะปัญหานอนไม่เป็นเวลา</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border-slate-800">
+                        <div class="text-class-blue text-2xl font-bold mb-1">7.5 ชม.</div>
+                        <div class="text-xs text-slate-400">ระยะเวลานอนที่สมบูรณ์แบบที่สุดต่อคืน</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border-slate-800">
+                        <div class="text-class-emerald text-2xl font-bold mb-1">90 นาที</div>
+                        <div class="text-xs text-slate-400">ความยาวมาตรฐานของ 1 รอบการนอนหลับ</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: Class-Time Sleep Calculator -->
+        <section id="calculator" class="py-16 px-4 max-w-6xl mx-auto w-full">
+            <div class="text-center mb-12">
+                <span class="text-class-blue font-semibold text-sm tracking-wider uppercase mb-2 block">Class-Time Sleep Calculator</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">เครื่องมือคำนวณเวลานอนสำหรับวิชาเช้า</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-base">
+                    ใส่วิชาเช้าของคุณ และเวลาที่ต้องใช้แต่งตัว/เดินทาง ระบบจะคำนวณเวลาตื่นและเวลาเข้านอนถอยหลังตามรอบการนอน 90 นาที เพื่อให้คุณตื่นตรงจุดจบรอบ ไม่งัวเงียวิชาเช้า!
+                </p>
+            </div>
+
+            <div class="glass-card p-6 md:p-10 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
+                <!-- Mode Toggle Buttons -->
+                <div class="flex justify-center mb-8">
+                    <div class="bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 flex gap-1">
+                        <button id="calcModeWake" class="px-5 py-2.5 rounded-xl text-sm font-bold transition-all bg-class-blue text-slate-950 shadow-md">
+                            <i class="fa-solid fa-school mr-2"></i>คำนวณตามเวลาเข้าเรียน
+                        </button>
+                        <button id="calcModeNow" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all">
+                            <i class="fa-solid fa-bed mr-2"></i>เข้านอนทันทีตอนนี้
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mode 1 Form: Target Class Time -->
+                <div id="wakeTimeInputGroup" class="max-w-xl mx-auto space-y-6 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-slate-300 text-sm mb-2 font-medium">⏰ เวลาเริ่มเรียนวิชาแรก:</label>
+                            <input type="time" id="classStartTimeInput" value="08:00" class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-xl font-bold text-white focus:outline-none focus:border-class-blue focus:ring-2 focus:ring-class-blue/30 transition-all text-center">
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 text-sm mb-2 font-medium">🚌 เวลาเตรียมตัว + เดินทาง (นาที):</label>
+                            <input type="number" id="prepTimeInput" value="60" min="10" max="180" class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-xl font-bold text-white focus:outline-none focus:border-class-blue focus:ring-2 focus:ring-class-blue/30 transition-all text-center">
+                        </div>
+                    </div>
+                    
+                    <button id="btnCalcSleep" class="w-full py-4 rounded-2xl bg-gradient-to-r from-class-blue via-class-indigo to-class-purple text-slate-950 font-extrabold text-lg shadow-lg hover:opacity-95 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>คำนวณเวลานอนทันที</span>
+                    </button>
+                </div>
+
+                <!-- Mode 2 Form: Sleep Now -->
+                <div id="sleepNowGroup" class="hidden max-w-md mx-auto text-center mb-8">
+                    <p class="text-slate-300 text-sm mb-4">หากคุณพร้อมจะปิดไฟนอน ณ วินาทีนี้ ควรตั้งนาฬิกาปลุกไว้เวลาใดเพื่อตื่นมาแล้วสดชื่นไปเรียน?</p>
+                    <button id="btnCalcNow" class="w-full py-4 rounded-2xl bg-gradient-to-r from-class-emerald to-class-blue text-slate-950 font-extrabold text-lg shadow-lg hover:opacity-95 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-moon"></i>
+                        <span>คำนวณเวลาตื่นสำหรับเข้านอนตอนนี้</span>
+                    </button>
+                </div>
+
+                <!-- Computed Results Display -->
+                <div id="calcResults" class="mt-8 pt-8 border-t border-slate-800">
+                    <div id="wakeSummaryBadge" class="max-w-md mx-auto mb-6 p-4 rounded-2xl bg-slate-900/80 border border-slate-700 text-center">
+                        <div class="text-xs text-slate-400">เวลาตื่นนอนที่ต้องตั้งปลุกเพื่อไปเรียนให้ทัน:</div>
+                        <div id="computedWakeTimeText" class="text-3xl font-extrabold text-class-blue mt-1">07:00 น.</div>
+                    </div>
+
+                    <h3 id="resultTitle" class="text-base font-semibold text-center text-slate-200 mb-6">
+                        เวลานอนที่แนะนำ (คำนวณรวมระยะเวลาเริ่มหลับเฉลี่ย 15 นาที):
+                    </h3>
+                    
+                    <div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Cards will be populated dynamically via JavaScript -->
+                    </div>
+
+                    <div class="mt-6 p-4 rounded-2xl bg-sky-950/30 border border-sky-800/40 text-xs md:text-sm text-sky-300 text-center flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-info text-class-blue text-base"></i>
+                        <span>เคล็ดลับ: การนอน 5 รอบ (7.5 ชั่วโมง) คือระยะเวลาพักผ่อนที่ดีที่สุดสำหรับความจำและการเรียนรู้ในวัยเรียน</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Impact Comparison -->
+        <section id="comparison" class="py-16 px-4 max-w-6xl mx-auto w-full">
+            <div class="text-center mb-12">
+                <span class="text-class-purple font-semibold text-sm tracking-wider uppercase mb-2 block">Sleep Impact & Benefits</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">เปรียบเทียบผลกระทบ: อดนอน VS พร้อมเรียน</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-base">
+                    การนอนดึกไม่ได้เพิ่มเวลาอ่านหนังสือ แต่เป็นการบั่นทอนประสิทธิภาพของสมอง ลองเปรียบเทียบความแตกต่างระหว่างสองทางเลือกนี้
+                </p>
+            </div>
+
+            <!-- Comparison Tabs Toggle -->
+            <div class="flex justify-center mb-8">
+                <div class="bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 flex gap-2">
+                    <button id="tabSleepBad" class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all bg-class-rose text-white shadow-md">
+                        <i class="fa-solid fa-circle-xmark mr-2"></i>อดนอน / ตื่นสายไปเรียน
+                    </button>
+                    <button id="tabSleepGood" class="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all">
+                        <i class="fa-solid fa-circle-check mr-2"></i>นอนเต็มอิ่ม / พร้อมเรียน
+                    </button>
+                </div>
+            </div>
+
+            <!-- Side-by-Side Comparison Container -->
+            <div id="compViewBad" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Bad Card 1 -->
+                <div class="glass-card p-6 rounded-3xl border-rose-500/30 bg-gradient-to-b from-slate-900 to-rose-950/20">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-class-rose text-2xl mb-4">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-rose-300 mb-2">สมองล้า / สมาธิสั้น</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        การหลั่งสารพิษในสมองค้างอยู่ ทำให้จำบทเรียนไม่ได้ ฟังอาจารย์ไม่ทัน คิดวิเคราะห์โจทย์ซับซ้อนช้าลงอย่างเห็นได้ชัด
+                    </p>
+                </div>
+                <!-- Bad Card 2 -->
+                <div class="glass-card p-6 rounded-3xl border-rose-500/30 bg-gradient-to-b from-slate-900 to-rose-950/20">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-class-rose text-2xl mb-4">
+                        <i class="fa-solid fa-book-skull"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-rose-300 mb-2">หลับในคลาส / เกรดตก</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        สัปหกขณะเรียนวิชาเช้า พลาดเนื้อหาสำคัญช่วงสอบ เสียคะแนนเช็กชื่อ และเสี่ยงต่อการขาดเรียนสะสม
+                    </p>
+                </div>
+                <!-- Bad Card 3 -->
+                <div class="glass-card p-6 rounded-3xl border-rose-500/30 bg-gradient-to-b from-slate-900 to-rose-950/20">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-class-rose text-2xl mb-4">
+                        <i class="fa-solid fa-face-frown"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-rose-300 mb-2">อารมณ์หงุดหงิดง่าย</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        ระดับฮอร์โมนความเครียด Cortisol สูงขึ้น ส่งผลให้ควบคุมอารมณ์ยาก มีความวิตกกังวล และกระทบความสัมพันธ์กับเพื่อน
+                    </p>
+                </div>
+                <!-- Bad Card 4 -->
+                <div class="glass-card p-6 rounded-3xl border-rose-500/30 bg-gradient-to-b from-slate-900 to-rose-950/20">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-class-rose text-2xl mb-4">
+                        <i class="fa-solid fa-person-running"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-rose-300 mb-2">วิ่งวุ่นลนลานยามเช้า</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        ต้องรีบแต่งตัว ไม่ได้กินข้าวเช้า เพิ่มความตึงเครียดสะสม และเสี่ยงต่ออุบัติเหตุจากการเร่งรีบเดินทาง
+                    </p>
+                </div>
+            </div>
+
+            <div id="compViewGood" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Good Card 1 -->
+                <div class="glass-card p-6 rounded-3xl border-emerald-500/30 bg-gradient-to-b from-slate-900 to-emerald-950/20">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-class-emerald text-2xl mb-4">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-emerald-300 mb-2">ความจำเป๊ะ / สมองไบรท์</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        สมองจัดเรียงข้อมูลช่วงหลับลึก สรุปเนื้อหาได้เร็ว จับประเด็นการเรียนวิชาเช้าได้แม่นยำยิ่งขึ้น
+                    </p>
+                </div>
+                <!-- Good Card 2 -->
+                <div class="glass-card p-6 rounded-3xl border-emerald-500/30 bg-gradient-to-b from-slate-900 to-emerald-950/20">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-class-emerald text-2xl mb-4">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-emerald-300 mb-2">พร้อมเรียน / คะแนนพุ่ง</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        ตื่นมาด้วยความสดชื่น ไม่ต้องพึ่งกาแฟ มีสมาธิตอบคำถามในคลาส และทำคะแนนสอบได้สูงกว่า
+                    </p>
+                </div>
+                <!-- Good Card 3 -->
+                <div class="glass-card p-6 rounded-3xl border-emerald-500/30 bg-gradient-to-b from-slate-900 to-emerald-950/20">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-class-emerald text-2xl mb-4">
+                        <i class="fa-solid fa-face-smile"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-emerald-300 mb-2">สดชื่น / อารมณ์ดี</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        สารความสุขสมดุล สภาพจิตใจแจ่มใส มั่นใจในการทำกิจกรรมร่วมกับเพื่อนในโรงเรียน/มหาวิทยาลัย
+                    </p>
+                </div>
+                <!-- Good Card 4 -->
+                <div class="glass-card p-6 rounded-3xl border-emerald-500/30 bg-gradient-to-b from-slate-900 to-emerald-950/20">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-class-emerald text-2xl mb-4">
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-emerald-300 mb-2">ยามเช้าผ่อนคลาย</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        มีเวลาละเลียดทานอาหารเช้า เตรียมอุปกรณ์เรียนครบถ้วน และเดินทางถึงห้องเรียนก่อนเวลาอย่างมั่นใจ
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 6 Class-Ready Habits -->
+        <section id="habits" class="py-16 px-4 max-w-6xl mx-auto w-full">
+            <div class="text-center mb-12">
+                <span class="text-class-emerald font-semibold text-sm tracking-wider uppercase mb-2 block">Sleep Hygiene for Students</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">6 เทคนิคปรับนาฬิกาชีวิตเพื่อตื่นทันเรียน</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-base">
+                    ปรับเปลี่ยนพฤติกรรมเล็กๆ น้อยๆ ในชีวิตประจำวัน เพื่อสร้างนาฬิกาชีวภาพที่แข็งแรง หลับง่ายขึ้น และตื่นมาพร้อมลุย
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Habit 1 -->
+                <div class="glass-card p-6 rounded-3xl glass-card-hover flex flex-col justify-between border-slate-800">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-class-blue text-xl mb-4">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">1. Say No to All-Nighter</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            หยุดอ่านหนังสือนัดหามรุ่งหามค่ำช่วงใกล้สอบ การนอนเต็มอิ่ม 7.5 ชั่วโมงจะช่วยให้สมองเรียบเรียงความจำระยะยาวได้ดีกว่าการโอดึกหลายเท่า!
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-class-blue bg-sky-950/40 p-2.5 rounded-xl border border-sky-800/40">
+                        💡 ข้อแนะนำ: สรุปบทเรียนก่อน 22:00 น. แล้วเข้านอนทันที
+                    </div>
+                </div>
+
+                <!-- Habit 2 -->
+                <div class="glass-card p-6 rounded-3xl glass-card-hover flex flex-col justify-between border-slate-800">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-class-amber text-xl mb-4">
+                            <i class="fa-solid fa-ban-smoke"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">2. Cut Off Caffeine หลังบ่าย 2</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            ชา กาแฟ หรือน้ำอัดลมช่วงบ่ายแก่ๆ มีครึ่งชีวิตของกาเฟอีนค้างอยู่ในร่างกายสูงถึง 6 ชั่วโมง ขัดขวางสาร Adenosine ทำให้หลับยากหรือตื่นกลางดึก
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-class-amber bg-amber-950/40 p-2.5 rounded-xl border border-amber-800/40">
+                        💡 ข้อแนะนำ: หลัง 14:00 น. เปลี่ยนเป็นดื่มน้ำเปล่าหรือชาสมุนไพร
+                    </div>
+                </div>
+
+                <!-- Habit 3 -->
+                <div class="glass-card p-6 rounded-3xl glass-card-hover flex flex-col justify-between border-slate-800">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-class-indigo text-xl mb-4">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">3. Digital Detox 30 นาทีก่อนนอน</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            แสงสีฟ้าจากหน้าจอมือถือ/คอมพิวเตอร์ ยับยั้งการหลั่งฮอร์โมน Melatonin ทำให้สมองคิดว่าเป็นเวลากลางวันและกระตือรือร้นจนนอนไม่หลับ
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-class-indigo bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-800/40">
+                        💡 ข้อแนะนำ: วางมือถือห่างจากเตียง หรือใช้ฟังก์ชัน Bedtime
+                    </div>
+                </div>
+
+                <!-- Habit 4 -->
+                <div class="glass-card p-6 rounded-3xl glass-card-hover flex flex-col justify-between border-slate-800">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-class-emerald text-xl mb-4">
+                            <i class="fa-solid fa-shirt"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">4. Prep Bag & Outfit Tonight</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            จัดกระเป๋าเรียน หนังสือ อุปกรณ์ และเตรียมชุดเรียนไว้ตั้งแต่คืนก่อนหน้า เพื่อลดความลนลานตื่นเต้นในยามเช้า ช่วยให้หลับสบายยิ่งขึ้น
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-class-emerald bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-800/40">
+                        💡 ข้อแนะนำ: ใช้เวลา 5 นาทีก่อนแปรงฟันจัดของเตรียมไว้
+                    </div>
+                </div>
+
+                <!-- Habit 5 -->
+                <div class="glass-card p-6 rounded-3xl glass-card-hover flex flex-col justify-between border-slate-800">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-class-purple text-xl mb-4">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">5. Consistent Schedule</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            เข้านอนและตื่นเวลาเดิมให้เป็นประจำแม้ในวันหยุดเสาร์-อาทิตย์ การนอนตื่นเที่ยงช่วงเสาร์-อาทิตย์จะเกิดภาวะ **Social Jetlag** ส่งผลให้ตื่นเช้าวันจันทร์ทรมานสุดๆ
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-class-purple bg-purple-950/40 p-2.5 rounded-xl border border-purple-800/40">
+                        💡 ข้อแนะนำ: เลื่อนเวลาตื่นวันหยุดไม่เกิน 1 ชั่วโมงจากวันปกติ
+                    </div>
+                </div>
+
+                <!-- Habit 6 -->
+                <div class="glass-card p-6 rounded-3xl glass-card-hover flex flex-col justify-between border-slate-800">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-class-rose text-xl mb-4">
+                            <i class="fa-solid fa-sun"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">6. Morning Sunlight Anchor</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            เปิดม่านรับแสงแดดยามเช้าทันทีหลังตื่นนอน 10-15 นาที เพื่อเซ็ตนาฬิกาชีวภาพ ให้ร่างกายเริ่มนับเวลาถอยหลังหลั่ง Melatonin ในอีก 14 ชั่วโมงข้างหน้า
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-class-rose bg-rose-950/40 p-2.5 rounded-xl border border-rose-800/40">
+                        💡 ข้อแนะนำ: เดินออกไปสูดอากาศหน้าบ้านหรือระเบียงยามเช้า
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Quiz Section -->
+        <section id="quiz" class="py-16 px-4 max-w-4xl mx-auto w-full">
+            <div class="text-center mb-12">
+                <span class="text-class-rose font-semibold text-sm tracking-wider uppercase mb-2 block">Lateness Risk Quiz</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">แบบประเมินความเสี่ยงตื่นสายไปเรียนไม่ทัน</h2>
+                <p class="text-slate-400 max-w-xl mx-auto text-sm">
+                    ประเมินพฤติกรรมการนอนในปัจจุบันของคุณ (4 ข้อ) เพื่อวิเคราะห์ความเสี่ยงว่าคุณกำลังเข้าสู่ภาวะ "สายบ่อย-เบลอในคลาส" หรือไม่?
+                </p>
+            </div>
+
+            <div class="glass-card p-6 md:p-10 rounded-3xl border border-slate-800 shadow-2xl relative">
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-800 rounded-full h-2 mb-8 overflow-hidden">
+                    <div id="quizProgressBar" class="bg-gradient-to-r from-class-blue to-class-purple h-2 rounded-full transition-all duration-300 w-1/4"></div>
+                </div>
+
+                <div id="quizContainer">
+                    <!-- Dynamic Question Step -->
+                    <div id="quizStep"></div>
+                </div>
+
+                <!-- Quiz Results Container -->
+                <div id="quizResult" class="hidden text-center py-6">
+                    <div id="quizScoreBadge" class="w-24 h-24 rounded-full bg-slate-900 border-4 border-class-blue flex items-center justify-center mx-auto mb-6 text-3xl font-black text-white shadow-xl shadow-sky-500/20">
+                        0/100
+                    </div>
+                    <h3 id="quizResultTitle" class="text-2xl font-bold mb-3 text-white">ผลการประเมินของคุณ</h3>
+                    <p id="quizResultDesc" class="text-slate-300 text-sm max-w-lg mx-auto mb-8 leading-relaxed">--</p>
+                    <button id="btnRetakeQuiz" class="px-6 py-3 rounded-2xl glass-card border border-slate-700 text-slate-200 hover:text-white hover:border-slate-500 transition-all text-sm font-semibold">
+                        <i class="fa-solid fa-rotate-left mr-2"></i>ทำแบบประเมินอีกครั้ง
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 7-Day Challenge Tracker -->
+        <section id="challenge" class="py-16 px-4 max-w-6xl mx-auto w-full">
+            <div class="text-center mb-12">
+                <span class="text-class-amber font-semibold text-sm tracking-wider uppercase mb-2 block">7-Day Consistency Tracker</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">ภารกิจ 7 วัน: สู้ตื่นสายวิชาเช้า</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-base">
+                    ท้าทายตัวเองด้วยการเข้านอนตามเวลาที่คำนวณไว้ติดต่อกัน 7 วัน ผลการทำภารกิจจะถูกบันทึกไว้ใน Browser ของคุณอัตโนมัติ!
+                </p>
+            </div>
+
+            <div class="glass-card p-6 md:p-8 rounded-3xl border border-slate-800">
+                <!-- Overall Progress Indicator -->
+                <div class="mb-8 p-6 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="text-center md:text-left">
+                        <h3 class="text-lg font-bold text-white mb-1">ความคืบหน้าภารกิจ 7 วัน</h3>
+                        <p class="text-xs text-slate-400">คลิกที่การ์ดแต่ละวันเพื่อบันทึกเมื่อเข้านอนและตื่นได้ตามเป้าหมาย</p>
+                    </div>
+                    <div class="flex items-center gap-4 w-full md:w-1/2">
+                        <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                            <div id="challengeProgressBar" class="bg-gradient-to-r from-class-blue via-class-indigo to-class-emerald h-3 rounded-full transition-all duration-500 w-0"></div>
+                        </div>
+                        <span id="challengePercent" class="text-lg font-extrabold text-class-blue min-w-[3rem]">0%</span>
+                    </div>
+                </div>
+
+                <!-- 7 Day Cards Grid -->
+                <div id="challengeGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
+                    <!-- Cards dynamically rendered via JS -->
+                </div>
+
+                <div class="mt-8 text-center">
+                    <button id="btnResetChallenge" class="text-xs text-slate-500 hover:text-slate-300 underline transition-colors">
+                        รีเซ็ตความคืบหน้าภารกิจทั้งหมด
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: Relaxation Corner -->
+        <section id="relaxation" class="py-16 px-4 max-w-5xl mx-auto w-full">
+            <div class="text-center mb-12">
+                <span class="text-class-blue font-semibold text-sm tracking-wider uppercase mb-2 block">Sleep Relaxation Tools</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">มุมผ่อนคลายก่อนนอน (Relaxation Corner)</h2>
+                <p class="text-slate-400 max-w-xl mx-auto text-sm">
+                    เครื่องมือสังเคราะห์เสียงธรรมชาติ และการฝึกหายใจแบบ 4-7-8 เพื่อสยบความเครียด ช่วยให้คุณหลับง่ายขึ้นในคืนนี้
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Sound Synthesizer Card -->
+                <div class="glass-card p-6 md:p-8 rounded-3xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-class-blue text-xl">
+                                <i class="fa-solid fa-headphones"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">เสียงกล่อมนอน (Sound Synth)</h3>
+                                <p class="text-xs text-slate-400">สร้างเสียงสังเคราะห์สดผ่าน Web Audio API</p>
+                            </div>
+                        </div>
+
+                        <!-- Sound Buttons -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                            <button id="btnSoundRain" class="p-3 rounded-2xl glass-card border border-slate-700 hover:border-class-blue text-xs font-semibold text-slate-200 transition-all flex flex-col items-center gap-2">
+                                <i class="fa-solid fa-cloud-showers-heavy text-class-blue text-lg"></i>
+                                <span>ฝนตกพรำๆ</span>
+                            </button>
+                            <button id="btnSoundOcean" class="p-3 rounded-2xl glass-card border border-slate-700 hover:border-class-indigo text-xs font-semibold text-slate-200 transition-all flex flex-col items-center gap-2">
+                                <i class="fa-solid fa-water text-class-indigo text-lg"></i>
+                                <span>คลื่นทะเลซัด</span>
+                            </button>
+                            <button id="btnSoundDrone" class="p-3 rounded-2xl glass-card border border-slate-700 hover:border-class-purple text-xs font-semibold text-slate-200 transition-all flex flex-col items-center gap-2">
+                                <i class="fa-solid fa-wave-square text-class-purple text-lg"></i>
+                                <span>คลื่น 432Hz</span>
+                            </button>
+                        </div>
+
+                        <!-- Volume Slider -->
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-xs text-slate-400">
+                                <span>ความดังเสียง:</span>
+                                <span id="volumeVal">50%</span>
+                            </div>
+                            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.5" class="w-full accent-class-blue bg-slate-800 rounded-lg h-2">
+                        </div>
+                    </div>
+
+                    <div id="soundStatus" class="text-center text-xs text-class-blue min-h-[1.5rem] p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+                        คลิกเลือกเสียงด้านบนเพื่อเริ่มฟัง
+                    </div>
+                </div>
+
+                <!-- 4-7-8 Breathing Guide Card -->
+                <div class="glass-card p-6 md:p-8 rounded-3xl border border-slate-800 flex flex-col items-center text-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-class-emerald text-lg">
+                                <i class="fa-solid fa-wind"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white text-left">ฝึกหายใจแบบ 4-7-8</h3>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-6">เทคนิคสากลช่วยลดอัตราการเต้นของหัวใจ ผ่อนคลายระบบประสาทก่อนนอน</p>
+                    </div>
+
+                    <!-- Animated Breathing Circle -->
+                    <div class="relative w-40 h-40 flex items-center justify-center my-4">
+                        <div id="breathCircle" class="breath-circle absolute inset-0 rounded-full bg-gradient-to-tr from-class-blue/30 to-class-purple/30 border-2 border-class-blue/50 flex items-center justify-center scale-75">
+                        </div>
+                        <div class="relative z-10 text-center pointer-events-none">
+                            <div id="breathStateText" class="text-base font-bold text-white">พร้อมเริ่ม</div>
+                            <div id="breathTimerText" class="text-2xl font-black text-class-blue">0</div>
+                        </div>
+                    </div>
+
+                    <button id="btnToggleBreath" class="w-full py-3 mt-4 rounded-2xl bg-gradient-to-r from-class-emerald to-class-blue text-slate-950 font-bold text-sm shadow-lg hover:opacity-95 transition-all">
+                        <i class="fa-solid fa-play mr-2"></i>เริ่มฝึกการหายใจ
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: Help & Resources Section -->
+        <section id="resources" class="py-16 px-4 max-w-6xl mx-auto w-full">
+            <div class="glass-card p-8 md:p-10 rounded-3xl border border-slate-800 bg-slate-900/90">
+                <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+                    <div class="space-y-4 max-w-xl text-center lg:text-left">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-class-rose text-xs font-semibold">
+                            <i class="fa-solid fa-hand-holding-medical"></i>
+                            <span>คำแนะนำเพิ่มเติม</span>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-white">หากมีอาการนอนไม่หลับเรื้อรัง (Insomnia)</h2>
+                        <p class="text-slate-300 text-sm leading-relaxed">
+                            หากคุณปรับพฤติกรรมตามเทคนิคแล้ว ยังคงนอนไม่หลับติดต่อกันเกิน 1 เดือน ตื่นกลางดึกบ่อย หรือมีอาการง่วงสะสมรุนแรง จนกระทบต่อการเรียนและสุขภาพอย่างมาก ควรปรึกษาแพทย์ผู้เชี่ยวชาญหรือห้องแนะแนวประจำสถานศึกษา
+                        </p>
+                    </div>
+
+                    <div class="w-full lg:w-auto flex flex-col sm:flex-row gap-4">
+                        <div class="glass-card p-5 rounded-2xl border-slate-700 flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-class-blue/20 flex items-center justify-center text-class-blue text-xl">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-slate-400">สายด่วนสุขภาพจิต</div>
+                                <div class="text-xl font-bold text-white">1323 (โทรฟรี 24 ชม.)</div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl border-slate-700 flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-class-emerald/20 flex items-center justify-center text-class-emerald text-xl">
+                                <i class="fa-solid fa-hospital"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-slate-400">ศูนย์โรคการนอนหลับ</div>
+                                <div class="text-sm font-semibold text-white">โรงพยาบาลชั้นนำทั่วประเทศ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-auto border-t border-slate-800/80 glass-card py-10 px-4 text-center text-xs text-slate-400">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-class-blue to-class-indigo flex items-center justify-center text-slate-950 font-bold text-sm">
+                        ⏰
+                    </div>
+                    <span class="font-bold text-slate-200 text-sm">Time to Class Campaign</span>
+                </div>
+
+                <p class="text-slate-500">
+                    โครงการแคมเปญรณรงค์นอนตรงเวลา ตื่นทันเรียน ไม่เบลอในห้อง © 2026 Time to Class Initiative.
+                </p>
+
+                <div class="flex gap-4 text-slate-400">
+                    <a href="#calculator" class="hover:text-white transition-colors">คำนวณเวลานอน</a>
+                    <a href="#quiz" class="hover:text-white transition-colors">ทำแบบประเมิน</a>
+                    <a href="#challenge" class="hover:text-white transition-colors">7-Day Challenge</a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // 1. Starfield Canvas Background
+            const canvas = document.getElementById('starfield');
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                initStars();
+            }
+
+            function initStars() {
+                stars = [];
+                const numStars = Math.floor((canvas.width * canvas.height) / 3500);
+                for (let i = 0; i < numStars; i++) {
+                    stars.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        radius: Math.random() * 1.4,
+                        alpha: Math.random(),
+                        speed: Math.random() * 0.01 + 0.005
+                    });
+                }
+            }
+
+            function animateStars() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#ffffff';
+
+                stars.forEach(star => {
+                    star.alpha += star.speed;
+                    if (star.alpha > 1 || star.alpha < 0.2) {
+                        star.speed = -star.speed;
+                    }
+                    ctx.globalAlpha = Math.max(0, star.alpha);
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                requestAnimationFrame(animateStars);
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            animateStars();
+
+            // Mobile Menu Toggle
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+
+            // 2. Class-Time Sleep Calculator Logic
+            const calcModeWake = document.getElementById('calcModeWake');
+            const calcModeNow = document.getElementById('calcModeNow');
+            const wakeTimeInputGroup = document.getElementById('wakeTimeInputGroup');
+            const sleepNowGroup = document.getElementById('sleepNowGroup');
+            const btnCalcSleep = document.getElementById('btnCalcSleep');
+            const btnCalcNow = document.getElementById('btnCalcNow');
+            const classStartTimeInput = document.getElementById('classStartTimeInput');
+            const prepTimeInput = document.getElementById('prepTimeInput');
+            const resultsGrid = document.getElementById('resultsGrid');
+            const computedWakeTimeText = document.getElementById('computedWakeTimeText');
+            const resultTitle = document.getElementById('resultTitle');
+
+            let currentCalcMode = 'wake'; // 'wake' or 'now'
+
+            calcModeWake.addEventListener('click', () => {
+                currentCalcMode = 'wake';
+                calcModeWake.className = 'px-5 py-2.5 rounded-xl text-sm font-bold transition-all bg-class-blue text-slate-950 shadow-md';
+                calcModeNow.className = 'px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all';
+                wakeTimeInputGroup.classList.remove('hidden');
+                sleepNowGroup.classList.add('hidden');
+                calculateSleepCycles();
+            });
+
+            calcModeNow.addEventListener('click', () => {
+                currentCalcMode = 'now';
+                calcModeNow.className = 'px-5 py-2.5 rounded-xl text-sm font-bold transition-all bg-class-blue text-slate-950 shadow-md';
+                calcModeWake.className = 'px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all';
+                sleepNowGroup.classList.remove('hidden');
+                wakeTimeInputGroup.classList.add('hidden');
+                calculateSleepCycles();
+            });
+
+            btnCalcSleep.addEventListener('click', calculateSleepCycles);
+            btnCalcNow.addEventListener('click', calculateSleepCycles);
+
+            function formatTime(dateObj) {
+                let hours = dateObj.getHours();
+                let minutes = dateObj.getMinutes();
+                const ampm = hours >= 12 ? 'น.' : 'น.';
+                hours = hours < 10 ? '0' + hours : hours;
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                return `${hours}:${minutes} ${ampm}`;
+            }
+
+            function calculateSleepCycles() {
+                resultsGrid.innerHTML = '';
+
+                const cyclesConfig = [
+                    { count: 6, label: 'ยอดเยี่ยมที่สุด (6 รอบ)', desc: 'นอนพักผ่อน 9 ชั่วโมงเต็ม สมองตื่นสดชื่น 100%', badge: '⭐️ Optimal+', color: 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300' },
+                    { count: 5, label: 'แนะนำอย่างยิ่ง (5 รอบ)', desc: 'นอน 7.5 ชั่วโมง ระยะมาตรฐานสากลวัยเรียน', badge: '⭐️ Recommended', color: 'border-sky-500/40 bg-sky-950/20 text-class-blue' },
+                    { count: 4, label: 'พอใช้ (4 รอบ)', desc: 'นอน 6 ชั่วโมง ขั้นต่ำที่สมองยังคงทำงานได้ดี', badge: 'Good', color: 'border-indigo-500/40 bg-indigo-950/20 text-class-indigo' },
+                    { count: 3, label: 'ระยะสั้น (3 รอบ)', desc: 'นอน 4.5 ชั่วโมง เหมาะเฉพาะวันเร่งด่วนสุดๆ', badge: 'Minimum', color: 'border-amber-500/40 bg-amber-950/20 text-class-amber' }
+                ];
+
+                if (currentCalcMode === 'wake') {
+                    resultTitle.textContent = 'หากต้องการตื่นเวลานี้ ควรเริ่มเข้านอนในรอบเวลาต่อไปนี้:';
+                    const classTime = classStartTimeInput.value;
+                    const prepMins = parseInt(prepTimeInput.value) || 60;
+
+                    if (!classTime) return;
+
+                    const [h, m] = classTime.split(':').map(Number);
+                    
+                    // Compute Wake-up Time = Class Start Time - Prep/Travel Time
+                    const wakeDate = new Date();
+                    wakeDate.setHours(h, m, 0, 0);
+                    wakeDate.setMinutes(wakeDate.getMinutes() - prepMins);
+
+                    computedWakeTimeText.textContent = `${formatTime(wakeDate)} (มีเวลาเตรียมตัว ${prepMins} นาทีก่อนเข้าเรียน)`;
+
+                    cyclesConfig.forEach(c => {
+                        // Bedtime = Wake Date - (cycles * 90 mins) - 15 mins fall asleep time
+                        const targetBedDate = new Date(wakeDate.getTime());
+                        const totalMinsToSubtract = (c.count * 90) + 15;
+                        targetBedDate.setMinutes(targetBedDate.getMinutes() - totalMinsToSubtract);
+
+                        renderCalcCard(formatTime(targetBedDate), c);
+                    });
+                } else {
+                    resultTitle.textContent = 'หากคุณเข้านอนตอนนี้ ควรมารั้งนาฬิกาปลุกในเวลาต่อไปนี้:';
+                    const now = new Date();
+                    computedWakeTimeText.textContent = `เข้านอน ณ เวลาปัจจุบัน (${formatTime(now)})`;
+
+                    cyclesConfig.forEach(c => {
+                        // Wake Date = Now + 15 mins fall asleep + (cycles * 90 mins)
+                        const targetWakeDate = new Date(now.getTime());
+                        const totalMinsToAdd = 15 + (c.count * 90);
+                        targetWakeDate.setMinutes(targetWakeDate.getMinutes() + totalMinsToAdd);
+
+                        renderCalcCard(formatTime(targetWakeDate), c);
+                    });
+                }
+            }
+
+            function renderCalcCard(timeStr, config) {
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-2xl border ${config.color} glass-card flex flex-col justify-between items-center text-center hover:scale-105 transition-transform duration-300`;
+                card.innerHTML = `
+                    <span class="text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full uppercase bg-slate-900/80 mb-2">${config.badge}</span>
+                    <div class="text-3xl font-black my-2 text-white">${timeStr}</div>
+                    <div class="text-xs font-bold mb-1">${config.label}</div>
+                    <div class="text-[11px] opacity-80 leading-snug">${config.desc}</div>
+                `;
+                resultsGrid.appendChild(card);
+            }
+
+            calculateSleepCycles();
+
+            // 3. Impact Comparison Tabs
+            const tabSleepBad = document.getElementById('tabSleepBad');
+            const tabSleepGood = document.getElementById('tabSleepGood');
+            const compViewBad = document.getElementById('compViewBad');
+            const compViewGood = document.getElementById('compViewGood');
+
+            tabSleepBad.addEventListener('click', () => {
+                tabSleepBad.className = 'px-6 py-2.5 rounded-xl text-sm font-bold transition-all bg-class-rose text-white shadow-md';
+                tabSleepGood.className = 'px-6 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all';
+                compViewBad.classList.remove('hidden');
+                compViewGood.classList.add('hidden');
+            });
+
+            tabSleepGood.addEventListener('click', () => {
+                tabSleepGood.className = 'px-6 py-2.5 rounded-xl text-sm font-bold transition-all bg-class-emerald text-slate-950 shadow-md';
+                tabSleepBad.className = 'px-6 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all';
+                compViewGood.classList.remove('hidden');
+                compViewBad.classList.add('hidden');
+            });
+
+            // 4. Lateness Risk Quiz Engine
+            const quizQuestions = [
+                {
+                    q: "1. คุณต้องพึ่งนาฬิกาปลุกกี่รอบ หรือกด Snooze (เลื่อนปลุก) บ่อยแค่ไหนยามเช้า?",
+                    options: [
+                        { text: "กดเลื่อนปลุกซ้ำ 3-5 รอบ งัวเงียลุกไม่ขึ้นจนเกือบไปเรียนไม่ทัน", score: 0 },
+                        { text: "กดเลื่อนปลุก 1-2 รอบ ต้องใช้เวลาสักพักถึงจะงัดตัวเองออกจากเตียงได้", score: 10 },
+                        { text: "ตื่นได้ในเสียงปลุกรอบแรก หรือตื่นเองก่อนนาฬิกาปลุกตื่นสดชื่น", score: 25 }
+                    ]
+                },
+                {
+                    q: "2. คุณรู้สึกอย่างไรเมื่อเข้าเรียนวิชาเช้าในห้องเรียน?",
+                    options: [
+                        { text: "สัปหก หลับในคลาส สมองเบลอจับใจความบทเรียนไม่ได้เลย", score: 0 },
+                        { text: "มึนๆ หาวบ่อย ต้องพึ่งกาแฟหรือเครื่องดื่มชูกำลังช่วยประคอง", score: 10 },
+                        { text: "สดชื่น สมองไบรท์ สมาธิดี พร้อมฟังอาจารย์และจดสรุป", score: 25 }
+                    ]
+                },
+                {
+                    q: "3. คุณหยุดเล่นมือถือ ส่องโซเชียล หรือเล่นเกมก่อนนอนกี่นาที?",
+                    options: [
+                        { text: "เล่นมือถือจนเผลอหลับไปพร้อมกับจอมือถือบนเตียงทุกคืน", score: 0 },
+                        { text: "วางมือถือก่อนนอนประมาณ 5-15 นาที", score: 10 },
+                        { text: "หยุดเล่นอุปกรณ์ทุกชนิดก่อนนอนอย่างน้อย 30-60 นาที", score: 25 }
+                    ]
+                },
+                {
+                    q: "4. รูปแบบการนอนหลับของคุณในวันเสาร์-อาทิตย์เป็นอย่างไร?",
+                    options: [
+                        { text: "นอนตี 3-4 แล้วตื่นบ่ายดึก เพื่อชดเชยที่อดนอนวันธรรมดา", score: 0 },
+                        { text: "นอนดึกขึ้น 1-2 ชั่วโมงแล้วตื่นสายกว่าปกติพอสมควร", score: 10 },
+                        { text: "เข้านอนและตื่นนอนเวลาใกล้เคียงกับวันเรียนปกติ", score: 25 }
+                    ]
+                }
+            ];
+
+            let quizCurrentIdx = 0;
+            let quizTotalScore = 0;
+
+            const quizStep = document.getElementById('quizStep');
+            const quizProgressBar = document.getElementById('quizProgressBar');
+            const quizContainer = document.getElementById('quizContainer');
+            const quizResult = document.getElementById('quizResult');
+            const quizScoreBadge = document.getElementById('quizScoreBadge');
+            const quizResultTitle = document.getElementById('quizResultTitle');
+            const quizResultDesc = document.getElementById('quizResultDesc');
+            const btnRetakeQuiz = document.getElementById('btnRetakeQuiz');
+
+            function renderQuizStep() {
+                if (quizCurrentIdx >= quizQuestions.length) {
+                    showQuizResults();
+                    return;
+                }
+
+                const pct = ((quizCurrentIdx + 1) / quizQuestions.length) * 100;
+                quizProgressBar.style.width = `${pct}%`;
+
+                const q = quizQuestions[quizCurrentIdx];
+                quizStep.innerHTML = `
+                    <h3 class="text-xl font-bold text-white mb-6">${q.q}</h3>
+                    <div class="space-y-3">
+                        ${q.options.map((opt, i) => `
+                            <button onclick="handleQuizAnswer(${opt.score})" class="w-full text-left p-4 rounded-2xl glass-card border border-slate-700 hover:border-class-blue hover:bg-slate-800/80 transition-all text-sm font-medium text-slate-200 flex items-center justify-between group">
+                                <span>${opt.text}</span>
+                                <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-class-blue group-hover:translate-x-1 transition-all"></i>
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            window.handleQuizAnswer = function(score) {
+                quizTotalScore += score;
+                quizCurrentIdx++;
+                renderQuizStep();
+            };
+
+            function showQuizResults() {
+                quizContainer.classList.add('hidden');
+                quizResult.classList.remove('hidden');
+                quizScoreBadge.textContent = `${quizTotalScore}/100`;
+
+                if (quizTotalScore >= 75) {
+                    quizScoreBadge.className = "w-24 h-24 rounded-full bg-emerald-950 border-4 border-class-emerald flex items-center justify-center mx-auto mb-6 text-2xl font-black text-emerald-300 shadow-xl shadow-emerald-500/20";
+                    quizResultTitle.textContent = "🟢 ความเสี่ยงต่ำ: วินัยการนอนยอดเยี่ยม!";
+                    quizResultTitle.className = "text-2xl font-bold mb-3 text-class-emerald";
+                    quizResultDesc.textContent = "คุณมีนาฬิกาชีวิตที่สมดุลมาก ตื่นเช้าสดชื่นพร้อมเรียนวิชาเช้าอย่างมีประสิทธิภาพ จงรักษาพฤติกรรมยอดเยี่ยมนี้ต่อไปนะครับ!";
+                } else if (quizTotalScore >= 40) {
+                    quizScoreBadge.className = "w-24 h-24 rounded-full bg-amber-950 border-4 border-class-amber flex items-center justify-center mx-auto mb-6 text-2xl font-black text-class-amber shadow-xl shadow-amber-500/20";
+                    quizResultTitle.textContent = "🟡 ความเสี่ยงปานกลาง: เริ่มมีอาการง่วงสะสมวิชาเช้า";
+                    quizResultTitle.className = "text-2xl font-bold mb-3 text-class-amber";
+                    quizResultDesc.textContent = "คุณเริ่มมีพฤติกรรมรบกวนการนอน เช่น เลนมือถือก่อนนอน หรือกด Snooze บ่อย แนะนำให้ปรับใช้ 6 เทคนิคปรับนาฬิกาชีวิตเพื่อตื่นทันเรียนอย่างสดชื่น";
+                } else {
+                    quizScoreBadge.className = "w-24 h-24 rounded-full bg-rose-950 border-4 border-class-rose flex items-center justify-center mx-auto mb-6 text-2xl font-black text-class-rose shadow-xl shadow-rose-500/20";
+                    quizResultTitle.textContent = "🔴 ความเสี่ยงสูงวิกฤต: เสี่ยงตื่นสายไปเรียนไม่ทันสะสม!";
+                    quizResultTitle.className = "text-2xl font-bold mb-3 text-class-rose";
+                    quizResultDesc.textContent = "พฤติกรรมการนอนในปัจจุบันส่งผลกระทบต่อสมาธิและเกรดการเรียนของคุณอย่างมาก! รีบวางแผนเข้านอนด้วยเครื่องมือคำนวณ และเริ่มภารกิจ 7 วันทันที";
+                }
+            }
+
+            btnRetakeQuiz.addEventListener('click', () => {
+                quizCurrentIdx = 0;
+                quizTotalScore = 0;
+                quizResult.classList.add('hidden');
+                quizContainer.classList.remove('hidden');
+                renderQuizStep();
+            });
+
+            renderQuizStep();
+
+            // 5. 7-Day Challenge Tracker with LocalStorage Persistence
+            const challengeGrid = document.getElementById('challengeGrid');
+            const challengeProgressBar = document.getElementById('challengeProgressBar');
+            const challengePercent = document.getElementById('challengePercent');
+            const btnResetChallenge = document.getElementById('btnResetChallenge');
+
+            const STORAGE_KEY = 'time_to_class_challenge_data';
+            let challengeData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [false, false, false, false, false, false, false];
+
+            function renderChallenge() {
+                challengeGrid.innerHTML = '';
+                let completedCount = 0;
+
+                challengeData.forEach((isDone, idx) => {
+                    if (isDone) completedCount++;
+
+                    const dayCard = document.createElement('div');
+                    dayCard.className = `p-4 rounded-2xl glass-card border transition-all text-center flex flex-col justify-between items-center cursor-pointer ${isDone ? 'border-class-emerald/80 bg-emerald-950/20 shadow-lg shadow-emerald-500/10' : 'border-slate-800 hover:border-slate-600'}`;
+                    dayCard.innerHTML = `
+                        <div class="text-xs font-semibold text-slate-400 mb-2">วันที่ ${idx + 1}</div>
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center my-2 text-base font-bold transition-all ${isDone ? 'bg-class-emerald text-slate-950' : 'bg-slate-800 text-slate-500'}">
+                            ${isDone ? '<i class="fa-solid fa-check"></i>' : idx + 1}
+                        </div>
+                        <div class="text-[11px] ${isDone ? 'text-class-emerald font-semibold' : 'text-slate-500'} mt-1">
+                            ${isDone ? 'สำเร็จแล้ว!' : 'แตะเพื่อบันทึก'}
+                        </div>
+                    `;
+
+                    dayCard.addEventListener('click', () => {
+                        challengeData[idx] = !challengeData[idx];
+                        saveAndUpdateChallenge();
+                    });
+
+                    challengeGrid.appendChild(dayCard);
+                });
+
+                const pct = Math.round((completedCount / 7) * 100);
+                challengeProgressBar.style.width = `${pct}%`;
+                challengePercent.textContent = `${pct}%`;
+            }
+
+            function saveAndUpdateChallenge() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(challengeData));
+                renderChallenge();
+            }
+
+            btnResetChallenge.addEventListener('click', () => {
+                challengeData = [false, false, false, false, false, false, false];
+                saveAndUpdateChallenge();
+            });
+
+            renderChallenge();
+
+            // 6. Web Audio API Ambient Sound Synthesizer & 4-7-8 Breathing Guide
+            let audioCtx = null;
+            let currentSoundNode = null;
+            let currentActiveSound = null;
+            let masterGainNode = null;
+
+            const btnSoundRain = document.getElementById('btnSoundRain');
+            const btnSoundOcean = document.getElementById('btnSoundOcean');
+            const btnSoundDrone = document.getElementById('btnSoundDrone');
+            const soundStatus = document.getElementById('soundStatus');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeVal = document.getElementById('volumeVal');
+
+            function getAudioContext() {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    masterGainNode = audioCtx.createGain();
+                    masterGainNode.gain.value = parseFloat(volumeSlider.value);
+                    masterGainNode.connect(audioCtx.destination);
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                return audioCtx;
+            }
+
+            volumeSlider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                volumeVal.textContent = `${Math.round(val * 100)}%`;
+                if (masterGainNode) {
+                    masterGainNode.gain.value = val;
+                }
+            });
+
+            function stopSound() {
+                if (currentSoundNode) {
+                    if (currentSoundNode.stop) currentSoundNode.stop();
+                    if (currentSoundNode.disconnect) currentSoundNode.disconnect();
+                    currentSoundNode = null;
+                }
+                currentActiveSound = null;
+                soundStatus.textContent = "คลิกเลือกเสียงด้านบนเพื่อเริ่มฟัง";
+                btnSoundRain.classList.remove('border-class-blue', 'bg-sky-950/40');
+                btnSoundOcean.classList.remove('border-class-indigo', 'bg-indigo-950/40');
+                btnSoundDrone.classList.remove('border-class-purple', 'bg-purple-950/40');
+            }
+
+            function playRainSound() {
+                const ctx = getAudioContext();
+                stopSound();
+
+                const bufferSize = ctx.sampleRate * 2;
+                const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+
+                let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    b0 = 0.99886 * b0 + white * 0.0555179;
+                    b1 = 0.99332 * b1 + white * 0.0750759;
+                    b2 = 0.96900 * b2 + white * 0.1538520;
+                    b3 = 0.86650 * b3 + white * 0.3104856;
+                    b4 = 0.55000 * b4 + white * 0.5329522;
+                    b5 = -0.7616 * b5 - white * 0.0168980;
+                    output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+                    output[i] *= 0.04;
+                    b6 = white * 0.115926;
+                }
+
+                const whiteNoise = ctx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.loop = true;
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 1000;
+
+                whiteNoise.connect(filter);
+                filter.connect(masterGainNode);
+                whiteNoise.start();
+
+                currentSoundNode = whiteNoise;
+                currentActiveSound = 'rain';
+                soundStatus.textContent = "🌧️ กำลังเล่น: เสียงฝนตกพรำๆ (คลิกซ้ำเพื่อปิด)";
+                btnSoundRain.classList.add('border-class-blue', 'bg-sky-950/40');
+            }
+
+            function playOceanSound() {
+                const ctx = getAudioContext();
+                stopSound();
+
+                const bufferSize = ctx.sampleRate * 3;
+                const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = (Math.random() * 2 - 1) * 0.05;
+                }
+
+                const noise = ctx.createBufferSource();
+                noise.buffer = noiseBuffer;
+                noise.loop = true;
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+
+                const lfo = ctx.createOscillator();
+                lfo.frequency.value = 0.1;
+                const lfoGain = ctx.createGain();
+                lfoGain.gain.value = 350;
+
+                lfo.connect(lfoGain);
+                lfoGain.connect(filter.frequency);
+                filter.frequency.value = 450;
+
+                noise.connect(filter);
+                filter.connect(masterGainNode);
+
+                lfo.start();
+                noise.start();
+
+                currentSoundNode = {
+                    stop: () => { noise.stop(); lfo.stop(); },
+                    disconnect: () => { noise.disconnect(); lfo.disconnect(); }
+                };
+                currentActiveSound = 'ocean';
+                soundStatus.textContent = "🌊 กำลังเล่น: เสียงคลื่นทะเลซัด (คลิกซ้ำเพื่อปิด)";
+                btnSoundOcean.classList.add('border-class-indigo', 'bg-indigo-950/40');
+            }
+
+            function playDroneSound() {
+                const ctx = getAudioContext();
+                stopSound();
+
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const droneGain = ctx.createGain();
+
+                osc1.type = 'sine';
+                osc1.frequency.value = 216;
+
+                osc2.type = 'sine';
+                osc2.frequency.value = 432;
+
+                droneGain.gain.value = 0.08;
+
+                osc1.connect(droneGain);
+                osc2.connect(droneGain);
+                droneGain.connect(masterGainNode);
+
+                osc1.start();
+                osc2.start();
+
+                currentSoundNode = {
+                    stop: () => { osc1.stop(); osc2.stop(); },
+                    disconnect: () => { osc1.disconnect(); osc2.disconnect(); }
+                };
+                currentActiveSound = 'drone';
+                soundStatus.textContent = "🧘‍♂️ กำลังเล่น: คลื่นเสียงผ่อนคลาย 432Hz (คลิกซ้ำเพื่อปิด)";
+                btnSoundDrone.classList.add('border-class-purple', 'bg-purple-950/40');
+            }
+
+            btnSoundRain.addEventListener('click', () => {
+                if (currentActiveSound === 'rain') stopSound();
+                else playRainSound();
+            });
+
+            btnSoundOcean.addEventListener('click', () => {
+                if (currentActiveSound === 'ocean') stopSound();
+                else playOceanSound();
+            });
+
+            btnSoundDrone.addEventListener('click', () => {
+                if (currentActiveSound === 'drone') stopSound();
+                else playDroneSound();
+            });
+
+            // 4-7-8 Breathing Guide Interactivity
+            const btnToggleBreath = document.getElementById('btnToggleBreath');
+            const breathCircle = document.getElementById('breathCircle');
+            const breathStateText = document.getElementById('breathStateText');
+            const breathTimerText = document.getElementById('breathTimerText');
+
+            let isBreathingActive = false;
+            let breathInterval = null;
+            let breathSeconds = 0;
+
+            function runBreathingLoop() {
+                // Total cycle = 4s (Inhale) + 7s (Hold) + 8s (Exhale) = 19 seconds
+                const cycleTime = breathSeconds % 19;
+
+                if (cycleTime < 4) {
+                    // Inhale Phase (0 to 4s)
+                    const count = 4 - cycleTime;
+                    breathStateText.textContent = "สูดหายใจเข้า...";
+                    breathTimerText.textContent = count;
+                    breathCircle.style.transform = "scale(1.2)";
+                    breathCircle.style.backgroundColor = "rgba(56, 189, 248, 0.4)";
+                } else if (cycleTime < 11) {
+                    // Hold Phase (4 to 11s)
+                    const count = 11 - cycleTime;
+                    breathStateText.textContent = "กลั้นหายใจไว้...";
+                    breathTimerText.textContent = count;
+                    breathCircle.style.transform = "scale(1.2)";
+                    breathCircle.style.backgroundColor = "rgba(129, 140, 248, 0.4)";
+                } else {
+                    // Exhale Phase (11 to 19s)
+                    const count = 19 - cycleTime;
+                    breathStateText.textContent = "ผ่อนลมหายใจออก...";
+                    breathTimerText.textContent = count;
+                    breathCircle.style.transform = "scale(0.75)";
+                    breathCircle.style.backgroundColor = "rgba(16, 185, 129, 0.4)";
+                }
+
+                breathSeconds++;
+            }
+
+            btnToggleBreath.addEventListener('click', () => {
+                if (isBreathingActive) {
+                    clearInterval(breathInterval);
+                    isBreathingActive = false;
+                    btnToggleBreath.innerHTML = '<i class="fa-solid fa-play mr-2"></i>เริ่มฝึกการหายใจ';
+                    breathStateText.textContent = "พร้อมเริ่ม";
+                    breathTimerText.textContent = "0";
+                    breathCircle.style.transform = "scale(0.75)";
+                    breathCircle.style.backgroundColor = "rgba(56, 189, 248, 0.3)";
+                } else {
+                    isBreathingActive = true;
+                    breathSeconds = 0;
+                    btnToggleBreath.innerHTML = '<i class="fa-solid fa-stop mr-2"></i>หยุดพักการฝึก';
+                    runBreathingLoop();
+                    breathInterval = setInterval(runBreathingLoop, 1000);
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
